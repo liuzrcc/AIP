@@ -4,7 +4,7 @@ import time
 import argparse
 import numpy as np
 import random
-
+import argparse
 sys.path.append('../')
 
 from tqdm import tqdm
@@ -23,10 +23,38 @@ device = 'cuda:0'
 
 from PIL import Image
 from io import StringIO, BytesIO
-import recsys_models
+import model as recsys_models
 import config
 
-data_train = 'amazon'
+
+parser = argparse.ArgumentParser(description = "VBPR train")
+parser.add_argument("-data_set", "--data_train", help="Training data to use", default="amazon")
+parser.add_argument("-gpu_id", "--gpu", type=int, help="Using GPU or not, cpu please use -1", default='0')
+parser.add_argument("-factor_num", "--K", type=int, help="Length of latent factors", default="100")
+parser.add_argument("-epoch", "--training_epoch", type=int, help="Iterative condition, parameter T in the paper.", default="2000")
+parser.add_argument("-batch_size", "--batch_size", type=int, help="Iterative condition, parameter T in the paper.", default="512")
+parser.add_argument("-lambda1", "--lambda1", type=float, help="Weight of regulizer for user embeddings.", default="1e-4")
+parser.add_argument("-learning_rate", "--lr", type=float, help="Weight of regulizer for network.", default="1e-3")
+parser.add_argument("-num_workers", "--numofworkers", type=int, help="Number of cou workers.", default="4")
+args = parser.parse_args()
+
+
+if args.gpu == 0:
+    device = 'cuda:0'
+elif args.gpu == -1:
+    device = 'cpu'
+    
+data_train = args.data_train
+training_epoch = args.training_epoch
+lambda1 = args.lambda1 # Weight decay
+learning_rate = args.lr
+batch_size = args.batch_size
+K = args.K # Latent dimensionality
+training_epoch = args.training_epoch
+numofworkers=args.numofworkers # number of workers for pytorch dataloader
+
+
+
 if data_train == 'amazon':
 
     dataset_name = 'AmazonMenWithImgPartitioned.npy'
@@ -60,7 +88,7 @@ def sample(user):
         if (not j in M) and (not j in cold_list): break
     return (u,i,j, alex_4096_cnn_f[i], alex_4096_cnn_f[j])
 
-VBPRmodel = recsys_models.pthVBPR(usernum, itemnum, 100, 4096)
+VBPRmodel = recsys_models.pthVBPR(usernum, itemnum, K, 4096)
 VBPRmodel.train().to(device)
 
 
@@ -144,8 +172,10 @@ def metrics_VBPR(model, val_loader, top_k):
 
 
 
+
+optimizer = optim.Adam(VBPRmodel.parameters(), lr=learning_rate, weight_decay=lambda1)
 # parameter for amazon
-optimizer = optim.Adam(VBPRmodel.parameters(), lr=1e-3, weight_decay=1e-4)
+# optimizer = optim.Adam(VBPRmodel.parameters(), lr=1e-3, weight_decay=1e-4)
 
 # parameter for tradesy k20 
 # optimizer = optim.Adam(VBPRmodel.parameters(), lr=1e-3, weight_decay=1e-5)
@@ -163,14 +193,14 @@ writer = SummaryWriter()
 writer_ct = 0
 
 count, best_hr = 0, 0
-for epoch in tqdm(range(2000)):
+for epoch in tqdm(range(training_epoch)):
     VBPRmodel.train() 
     start_time = time.time()
     train_ls = [list(sample(user_train)) for _ in range(oneiteration)]
     train_data  = trainset()
 
-    for data in DataLoader(train_data, batch_size = 512, 
-                       shuffle = False, pin_memory = True, num_workers = 4):
+    for data in DataLoader(train_data, batch_size = batch_size, 
+                       shuffle = False, pin_memory = True, num_workers = numofworkers):
         
         user, item_i, item_j, cnn_i, cnn_j = data
 

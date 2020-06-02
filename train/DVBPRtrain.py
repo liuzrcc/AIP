@@ -6,7 +6,8 @@ from PIL import Image
 from io import StringIO, BytesIO
 import threading
 from tqdm import tqdm
-device = 'cuda:0'
+import argparse
+
 sys.path.append('../')
 
 import torch
@@ -20,19 +21,48 @@ from torch.autograd import Variable
 from torch.utils.tensorboard import SummaryWriter
 from torch.optim.lr_scheduler import MultiStepLR
 
-import recsys_models
+import model as recsys_models
 
 
+parser = argparse.ArgumentParser(description = "DVBPR train")
+parser.add_argument("-data_set", "--data_train", help="Training data to use", default="amazon")
+parser.add_argument("-gpu_id", "--gpu", type=int, help="Using GPU or not, cpu please use -1", default='0')
+parser.add_argument("-factor_num", "--K", type=int, help="Length of latent factors", default="100")
+parser.add_argument("-epoch", "--training_epoch", type=int, help="Iterative condition, parameter T in the paper.", default="20")
+parser.add_argument("-batch_size", "--batch_size", type=int, help="Iterative condition, parameter T in the paper.", default="128")
+parser.add_argument("-lambda1", "--lambda1", type=int, help="Weight of regulizer for user embeddings.", default="128")
+parser.add_argument("-lambda2", "--lambda2", type=int, help="Weight of regulizer for network.", default="128")
+parser.add_argument("-learning_rate", "--lr", type=float, help="Weight of regulizer for network.", default="1e-4")
+parser.add_argument("-num_workers", "--numofworkers", type=int, help="Number of cou workers.", default="4")
+args = parser.parse_args()
 
-data_train = 'amazon'
-K = 100 # Latent dimensionality
-lambda1 = 0.001 # Weight decay
-lambda2 = 1.0 # Regularizer wfor theta_u
-learning_rate = 1e-4
-training_epoch = 20
-batch_size = 128
+
+# data_train = 'amazon'
+# K = 100 # Latent dimensionality
+# lambda1 = 0.001 # Weight decay
+# lambda2 = 1.0 # Regularizer wfor theta_u
+# learning_rate = 1e-4
+# training_epoch = 20
+# batch_size = 128
+# dropout = 0.5 # Dropout, probability to keep units
+# numofworkers=4 # number of workers for pytorch dataloader
+# training_epoch = 20
+# device = 'cuda:0'
+if args.gpu == 0:
+    device = 'cuda:0'
+elif args.gpu == -1:
+    device = 'cpu'
+    
+data_train = args.data_train
+K = args.K # Latent dimensionality
+lambda1 = args.lambda1 # Weight decay
+lambda2 = args.lambda2 # Regularizer wfor theta_u
+learning_rate = args.lr
+training_epoch = args.training_epoch
+batch_size = args.batch_size
 dropout = 0.5 # Dropout, probability to keep units
-numofworkers=4 # number of workers for pytorch dataloader
+numofworkers=args.numofworkers # number of workers for pytorch dataloader
+training_epoch = args.training_epoch
 
 
 data_train = 'amazon'
