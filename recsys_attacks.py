@@ -6,7 +6,6 @@ import numpy as np
 import random
 
 import tqdm
-from tqdm import tqdm_notebook
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -66,7 +65,6 @@ def INSA_DVBPR(save_root, org_img_num, User_content_embedding, epsilon, Item, de
     for epoch in range(10):
         for data in DataLoader(train_data, batch_size = 512, shuffle = False, num_workers = 4):
             loss = -1 * torch.sum(model(norm(image_o + delta)) * data.to(device), axis = 1).exp().log().mean()
-#             loss = -1 * torch.sum(model(norm(image_o + delta)) * data.cuda(), axis = 1).mean()
 #             print(loss.item())
             optimizer.zero_grad()
             loss.backward(retain_graph=True)
@@ -81,7 +79,6 @@ def INSA_DVBPR(save_root, org_img_num, User_content_embedding, epsilon, Item, de
     
     
 def EXPA_DVBPR(org_img_path, target_number, adv_images_root, epsilon, Item, device, model, norm):
-#     image_t = input_transform(Image.open('./cold-items/' + org_img_path)).to(device)
     image_t = tensor_transform(Image.open(BytesIO(Item[org_img_path][b'imgs']))).to(device)
 
     target_feature = model(orginal_transform(Image.open(BytesIO(Item[target_number][b'imgs']))).unsqueeze(0).to(device))
@@ -115,6 +112,7 @@ def INSA_VBPR(save_root, org_img_num, usernum, epsilon, Item, device, VBPRmodel,
     optimizer = torch.optim.Adam([delta], lr=1e-4)
     train_ls = [list((u_idx, org_img_num)) for u_idx in range(usernum)]
     train_data  = trainset(train_ls)
+    
     for epoch in range(5):
         for data in DataLoader(train_data, batch_size = 256, shuffle = False, num_workers = 4):
             ui, xj = data
@@ -138,7 +136,7 @@ def Alex_EXPA(save_root, org_img_num, target_item, usernum, epsilon, Item, devic
 
     optimizer = torch.optim.Adam([delta], lr=1e-2)
 
-    for epoch in range(100):
+    for epoch in range(5000):
         image_o = orginal_transform_alex(Image.open(BytesIO(Item[org_img_num][b'imgs']))).unsqueeze(0).to(device)
         loss =  torch.norm(feature_model(norm((image_o + delta))) - feature_model(norm(orginal_transform_alex(Image.open(BytesIO(Item[target_item][b'imgs']))).to(device))))
 
@@ -154,6 +152,7 @@ def Alex_EXPA(save_root, org_img_num, target_item, usernum, epsilon, Item, devic
     x_np.save(save_root + str(org_img_num) +'.png')
     
 def INSA_AlexRank(save_root, org_img_num, alexnet_feature, usernum, epsilon, Item, device, model, norm, user_train):
+    
     item_dict = {}
     for u in tqdm_notebook(range(usernum)):
         for j in user_train[u]:
@@ -173,7 +172,6 @@ def INSA_AlexRank(save_root, org_img_num, alexnet_feature, usernum, epsilon, Ite
 
             optimizer.zero_grad()
             loss.backward(retain_graph=True)
-#             print(loss.item())
             optimizer.step()
 
             delta.data = torch.clamp(delta.data, -epsilon/255, epsilon/255)
@@ -181,5 +179,4 @@ def INSA_AlexRank(save_root, org_img_num, alexnet_feature, usernum, epsilon, Ite
 
     X_new = image_o + delta.data
     x_np = transforms.ToPILImage()((torch.round(X_new[0]*255)/255).detach().cpu())
-    x_np.save(save_root + str(org_img_num) +'.png')
-    
+    x_np.save(save_root + str(org_img_num) +'.png')    
