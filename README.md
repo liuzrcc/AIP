@@ -11,6 +11,9 @@ Figure below illustrates the mechanics of AIP attack.
 
 ### How to use the code:
 #### 0. Prerequisites
+
+We carry out experiments on Ubuntu 18.04 environemnt with 32 cpu cores and 32G memory. A GPU is essential for efficiency.
+
 ```
 Python3
 PyTorch 1.4.0
