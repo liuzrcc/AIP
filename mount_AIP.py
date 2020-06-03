@@ -23,7 +23,7 @@ from AIP import INSA_DVBPR, EXPA_DVBPR, INSA_VBPR, Alex_EXPA, INSA_AlexRank
 
 
 
-parser = argparse.ArgumentParser(description = "VBPR train")
+parser = argparse.ArgumentParser(description = "AIP attacks")
 parser.add_argument("-data_set", "--data_for_experiment", help="Training data to use", default="amazon")
 parser.add_argument("-gpu_id", "--gpu", type=int, help="Using GPU or not, cpu please use -1", default='0')
 parser.add_argument("-model_to_attack", "--model_to_attack", help="Length of latent factors", default="DVBPR")
