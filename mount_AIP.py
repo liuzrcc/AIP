@@ -19,14 +19,28 @@ import torchvision.transforms as transforms
 import torch.nn.functional as F
 
 from model import pthDVBPR, pthVBPR, Normalize
-from recsys_attacks import INSA_DVBPR, EXPA_DVBPR, INSA_VBPR, Alex_EXPA, INSA_AlexRank
+from AIP import INSA_DVBPR, EXPA_DVBPR, INSA_VBPR, Alex_EXPA, INSA_AlexRank
 
 
-data_for_experiment = 'amazon'
-device = 'cuda:0'
-attack_type = 'EXPA'
-model_to_attack = 'AlexRank'
-epsilon = 32
+
+parser = argparse.ArgumentParser(description = "VBPR train")
+parser.add_argument("-data_set", "--data_for_experiment", help="Training data to use", default="amazon")
+parser.add_argument("-gpu_id", "--gpu", type=int, help="Using GPU or not, cpu please use -1", default='0')
+parser.add_argument("-model_to_attack", "--model_to_attack", help="Length of latent factors", default="DVBPR")
+parser.add_argument("-attack_type", "--attack_type", help="Length of latent factors", default="INSA")
+parser.add_argument("-L_inf_norm", "--epsilon", type=int, help="Length of latent factors", default="32")
+args = parser.parse_args()
+
+
+data_for_experiment = args.data_for_experiment
+if args.gpu == 0:
+    device = 'cuda:0'
+elif args.gpu == -1:
+    device = 'cpu'
+    
+attack_type = args.attack_type
+model_to_attack = args.model_to_attack
+epsilon = args.epsilon
 
 
 print('######## Loading data ########')
@@ -81,6 +95,8 @@ elif model_to_attack == 'VBPR':
     feature_model.eval().to(device)
 
 elif model_to_attack == 'AlexRank':
+    norm = Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    norm.to(device)
     feature_model = models.alexnet(pretrained=True)
     new_classifier = nn.Sequential(*list(feature_model.classifier.children())[:-1])
     feature_model.classifier = new_classifier
