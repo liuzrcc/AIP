@@ -23,12 +23,12 @@ import config
 parser = argparse.ArgumentParser(description = "BPR train")
 parser.add_argument("-data_set", "--data_train", help="Training data to use", default="amazon")
 parser.add_argument("-gpu_id", "--gpu", type=int, help="Using GPU or not, cpu please use -1", default='0')
-parser.add_argument("-factor_num", "--K", type=int, help="Length of latent factors", default="64")
-parser.add_argument("-epoch", "--training_epoch", type=int, help="Iterative condition, parameter T in the paper.", default="2000")
-parser.add_argument("-batch_size", "--batch_size", type=int, help="Iterative condition, parameter T in the paper.", default="4096")
+parser.add_argument("-factor_num", "--K", type=int, help="Length of latent factor.", default="64")
+parser.add_argument("-epoch", "--training_epoch", type=int, help="Training epoches.", default="2000")
+parser.add_argument("-batch_size", "--batch_size", type=int, help="Training batch size.", default="4096")
 parser.add_argument("-lambda1", "--lambda1", type=float, help="Weight of regulizer for user embeddings.", default="0.001")
-parser.add_argument("-learning_rate", "--lr", type=float, help="Weight of regulizer for network.", default="0.01")
-parser.add_argument("-num_workers", "--numofworkers", type=int, help="Number of cou workers.", default="6")
+parser.add_argument("-learning_rate", "--lr", type=float, help="Training learning rate.", default="0.01")
+parser.add_argument("-num_workers", "--numofworkers", type=int, help="Number of co-workers for dataloader.", default="6")
 args = parser.parse_args()
 
 
@@ -47,7 +47,7 @@ training_epoch = args.training_epoch
 numofworkers=args.numofworkers # number of workers for pytorch dataloader
 
 
-
+# Loading training data and cold item list to exclude from training
 data_train = 'amazon'
 if data_train == 'amazon':
 
@@ -64,6 +64,7 @@ elif data_train == 'tradesy':
     [user_train, user_validation, user_test, Item, usernum, itemnum] = dataset
     cold_list = np.load('../data/tradesy_one_k_cold.npy')
 
+# define evaluation metrics
 def metrics_hr(model, val_loader, top_k):
     HR = []
 
@@ -168,6 +169,7 @@ optimizer = optim.SGD(model.parameters(), lr=learning_rate, weight_decay=lambda1
 writer = SummaryWriter()
 writer_ct = 0
 
+# model training
 count, best_hr = 0, 0
 for epoch in tqdm(range(training_epoch)):
     model.train() 

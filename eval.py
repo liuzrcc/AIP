@@ -21,12 +21,12 @@ from tqdm import tqdm
 from model import pthDVBPR, pthVBPR, Normalize
 
 
-parser = argparse.ArgumentParser(description = "VBPR train")
-parser.add_argument("-model_to_eval", "--model_to_eval", help="Which model to socre or index. ", default="DVBPR")
-parser.add_argument("-data_set", "--data_for_experiment", help="Training data to use", default="amazon")
+parser = argparse.ArgumentParser(description = "Evaluation")
+parser.add_argument("-model_to_eval", "--model_to_eval", help="Which model to eval. ", default="DVBPR")
+parser.add_argument("-data_set", "--data_for_experiment", help="Data set to use", default="amazon")
 parser.add_argument("-gpu_id", "--gpu", type=int, help="Using GPU or not, cpu please use -1", default='0')
-parser.add_argument("-adv_item_path", "--adv_item_path", help="adv_item_path", default='amazon_INSA')
-parser.add_argument("-score_path", "--score_path", help="Using GPU or not, cpu please use -1", default='./bpr_score_index/')
+parser.add_argument("-adv_item_path", "--adv_item_path", help="Path to generated adversarial item images.", default='amazon_INSA')
+parser.add_argument("-score_path", "--score_path", help="Path to pre-calculated scores.", default='./bpr_score_index/')
 args = parser.parse_args()
 
 

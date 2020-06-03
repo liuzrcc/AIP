@@ -34,11 +34,7 @@ class Normalize(nn.Module):
 class BPR(nn.Module):
     def __init__(self, user_num, item_num, factor_num):
         super(BPR, self).__init__()
-        """
-        user_num: number of users;
-        item_num: number of items;
-        factor_num: number of predictive factors.
-        """
+
         self.embed_user = nn.Embedding(user_num, factor_num)
         self.embed_item = nn.Embedding(item_num, factor_num)
 
@@ -58,6 +54,7 @@ class BPR(nn.Module):
 
 class pthDVBPR(nn.Module):
     def __init__(self, K):
+        
         super(pthDVBPR, self).__init__()
         self.conv1 = nn.Conv2d(3, 64, 11, stride=4, padding=0)
         self.conv2 = nn.Conv2d(64, 256, 5, padding=2)
@@ -88,6 +85,7 @@ class pthDVBPR(nn.Module):
     
 class User_Em(nn.Module):
     def __init__(self, user_size, dim):
+        
         super().__init__()
         self.W = nn.Parameter(torch.empty([user_size, dim]).uniform_(0, 1/100))
 
@@ -97,14 +95,10 @@ class User_Em(nn.Module):
     
 
 class pthVBPR(nn.Module):
+    
     def __init__(self, user_num, item_num, factor_num, cnn_feature_dim):
+        
         super(pthVBPR, self).__init__()
-        """
-        user_num: number of users;
-        item_num: number of items;
-        factor_num: number of factors.
-        cnn_feature_dim: length of cnn feature
-        """
         self.embed_user = nn.Embedding(user_num, factor_num)
         self.embed_item = nn.Embedding(item_num, factor_num)
 

@@ -31,11 +31,11 @@ parser = argparse.ArgumentParser(description = "VBPR train")
 parser.add_argument("-data_set", "--data_train", help="Training data to use", default="amazon")
 parser.add_argument("-gpu_id", "--gpu", type=int, help="Using GPU or not, cpu please use -1", default='0')
 parser.add_argument("-factor_num", "--K", type=int, help="Length of latent factors", default="100")
-parser.add_argument("-epoch", "--training_epoch", type=int, help="Iterative condition, parameter T in the paper.", default="2000")
-parser.add_argument("-batch_size", "--batch_size", type=int, help="Iterative condition, parameter T in the paper.", default="512")
-parser.add_argument("-lambda1", "--lambda1", type=float, help="Weight of regulizer for user embeddings.", default="1e-4")
-parser.add_argument("-learning_rate", "--lr", type=float, help="Weight of regulizer for network.", default="1e-3")
-parser.add_argument("-num_workers", "--numofworkers", type=int, help="Number of cou workers.", default="4")
+parser.add_argument("-epoch", "--training_epoch", type=int, help="Training epoches.", default="2000")
+parser.add_argument("-batch_size", "--batch_size", type=int, help="Training batch size.", default="512")
+parser.add_argument("-lambda1", "--lambda1", type=float, help="Weight of regulizer.", default="1e-4")
+parser.add_argument("-learning_rate", "--lr", type=float, help="Learning rate.", default="1e-3")
+parser.add_argument("-num_workers", "--numofworkers", type=int, help="Number of co-workers for dataloader.", default="4")
 args = parser.parse_args()
 
 
@@ -228,6 +228,6 @@ for epoch in tqdm(range(training_epoch)):
         if True:
             if not os.path.exists(config.model_path):
                 os.mkdir(config.model_path)
-            torch.save(VBPRmodel, '{}best_k100_amazon_VBPR_trial.pt'.format(config.model_path))
+            torch.save(VBPRmodel, '{}_k100_{}_VBPR.pt'.format(config.model_path, data_train))
 
     print("End. Best epoch {:03d}: HR = {:.3f}".format(best_epoch, best_hr))

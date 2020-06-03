@@ -10,11 +10,11 @@ import torch
 
 
 parser = argparse.ArgumentParser(description = "Score and index")
-parser.add_argument("-task", "--task", help="Which model to socre or index. ", default="BPR-DVBPR")
-parser.add_argument("-data_set", "--data_train", help="Training data to use", default="amazon")
+parser.add_argument("-task", "--task", help="Which model to socre (or index). ", default="BPR-DVBPR",  help='You need to run BPR-DVBPR before VBPR and AlexRank.')
+parser.add_argument("-data_set", "--data_train", help="Data set to use", default="amazon")
 parser.add_argument("-gpu_id", "--gpu", type=int, help="Using GPU or not, cpu please use -1", default='0')
-parser.add_argument("-model_path", "--model_path", help="Using GPU or not, cpu please use -1", default='./models/')
-parser.add_argument("-score_path", "--score_path", help="Using GPU or not, cpu please use -1", default='./bpr_score_index/')
+parser.add_argument("-model_path", "--model_path", help="Path to load trained model.", default='./models/')
+parser.add_argument("-score_path", "--score_path", help="Path to save calculated scores and index.", default='./bpr_score_index/')
 args = parser.parse_args()
 
 
@@ -101,10 +101,8 @@ if args.task == 'BPR-DVBPR':
         st1_1000 =  np.append(st1_1000, np.argsort(-1 * temp_res)[:, :1000], axis = 0)
         print('one iter!')
 
-    np.save('./bpr_score_index/st1000_' + data_train +'.npy', st1000)
-    print('candidate generated')
-
-
+#     np.save('./bpr_score_index/st1000_' + data_train +'.npy', st1000)
+#     print('candidate generated')
 ####################################################################################
     # calculation of DVBPR scores and BPR indexes
 
