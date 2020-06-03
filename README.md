@@ -4,7 +4,7 @@ This repository releases the PyTorch implementation of "AIP" in our paper ["Adve
 
 Figure below illustrates the mechanics of AIP attack. 
 
-![patches](https://github.com/liuzrcc/PIRE/blob/master/figures/diagram_1_adv_recsys.png)
+![diagram](https://github.com/liuzrcc/PIRE/blob/master/figures/diagram_1_adv_recsys.png)
 
 
 ### How to use the code:
@@ -67,7 +67,7 @@ Evaluation results are saved in `./results/` by default.
 
 A t-SNE 2-D visualization of cooperative item and adversarial items are shown below:
 
-![patches](https://github.com/liuzrcc/PIRE/blob/master/figures/tsne_DVBPR.png)
+![vis](https://github.com/liuzrcc/PIRE/blob/master/figures/tsne_DVBPR.png)
 
 
 Please cite the following paper if you use AIP in your research.
