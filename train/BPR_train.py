@@ -15,10 +15,38 @@ import torch.utils.data as data
 import torch.backends.cudnn as cudnn
 from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import Dataset, DataLoader
-device = 'cuda:0'
 
-import recsys_models
+import model as recsys_models
 import config
+
+
+parser = argparse.ArgumentParser(description = "BPR train")
+parser.add_argument("-data_set", "--data_train", help="Training data to use", default="amazon")
+parser.add_argument("-gpu_id", "--gpu", type=int, help="Using GPU or not, cpu please use -1", default='0')
+parser.add_argument("-factor_num", "--K", type=int, help="Length of latent factors", default="64")
+parser.add_argument("-epoch", "--training_epoch", type=int, help="Iterative condition, parameter T in the paper.", default="2000")
+parser.add_argument("-batch_size", "--batch_size", type=int, help="Iterative condition, parameter T in the paper.", default="4096")
+parser.add_argument("-lambda1", "--lambda1", type=float, help="Weight of regulizer for user embeddings.", default="0.001")
+parser.add_argument("-learning_rate", "--lr", type=float, help="Weight of regulizer for network.", default="0.01")
+parser.add_argument("-num_workers", "--numofworkers", type=int, help="Number of cou workers.", default="6")
+args = parser.parse_args()
+
+
+if args.gpu == 0:
+    device = 'cuda:0'
+elif args.gpu == -1:
+    device = 'cpu'
+    
+data_train = args.data_train
+training_epoch = args.training_epoch
+lambda1 = args.lambda1 # Weight decay
+learning_rate = args.lr
+batch_size = args.batch_size
+K = args.K # Latent dimensionality
+training_epoch = args.training_epoch
+numofworkers=args.numofworkers # number of workers for pytorch dataloader
+
+
 
 data_train = 'amazon'
 if data_train == 'amazon':
@@ -37,7 +65,7 @@ elif data_train == 'tradesy':
     cold_list = np.load('../data/tradesy_one_k_cold.npy')
 
 def metrics_hr(model, val_loader, top_k):
-    HR, NDCG = [], []
+    HR = []
 
     for user, item_i, item_j in val_loader:
         user = user.to(device)
@@ -123,31 +151,33 @@ val_loader = DataLoader(val_data, batch_size = 100,
                        shuffle = False, num_workers = 4)
 
 
-model = recsys_models.BPR(usernum, itemnum, 64)
+model = recsys_models.BPR(usernum, itemnum, K)
 model.to(device)
 
 
-if data_train == 'amazon':
-    # for amazon
-    optimizer = optim.SGD(model.parameters(), lr=0.01, weight_decay=0.001)
-elif data_train == 'tradesy':
-    # for tradesy
-    optimizer = optim.SGD(model.parameters(), lr=0.5, weight_decay=0.001)
+optimizer = optim.SGD(model.parameters(), lr=learning_rate, weight_decay=lambda1)
+
+# if data_train == 'amazon':
+#     # for amazon
+#     optimizer = optim.SGD(model.parameters(), lr=0.01, weight_decay=0.001)
+# elif data_train == 'tradesy':
+#     # for tradesy
+#     optimizer = optim.SGD(model.parameters(), lr=0.5, weight_decay=0.001)
 
 
 writer = SummaryWriter()
 writer_ct = 0
 
 count, best_hr = 0, 0
-for epoch in tqdm(range(2000)):
+for epoch in tqdm(range(training_epoch)):
     model.train() 
     start_time = time.time()
     train_ls = [list(sample(user_train)) for _ in range(oneiteration)]
 
     train_data  = trainset()
 
-    for data in DataLoader(train_data, batch_size = 4096, 
-                       shuffle = True, pin_memory = True, num_workers = 6):
+    for data in DataLoader(train_data, batch_size = batch_size, 
+                       shuffle = True, pin_memory = True, num_workers = numofworkers):
         
         user, item_i, item_j = data
 
@@ -157,7 +187,7 @@ for epoch in tqdm(range(2000)):
         loss.backward()
         optimizer.step()
         writer.add_scalar('runs/loss', loss.item(), count)
-        count += 1000
+        count += 1
     model.eval()
     
     HR = metrics_hr(model, val_loader, 5)
@@ -172,6 +202,6 @@ for epoch in tqdm(range(2000)):
         if True:
             if not os.path.exists(config.model_path):
                 os.mkdir(config.model_path)
-            torch.save(model, '{}amazon_BPR_trial.pt'.format(config.model_path))
+            torch.save(model, '{}{}_BPR_train.pt'.format(config.model_path, data_train))
 
     print("End. Best epoch {:03d}: HR = {:.3f}".format(best_epoch, best_hr,))
