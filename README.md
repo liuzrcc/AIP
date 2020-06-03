@@ -77,7 +77,7 @@ A t-SNE 2-D visualization of cooperative item and adversarial items are shown be
 
 Please cite the following paper if you use AIP in your research.
 
-      @inproceedings{pire2019,
+      @inproceedings{liu2020adversarial,
       Author = {Zhuoran Liu and Martha Larson},
       Title = {Adversarial Item Promotion: Vulnerabilities at the Core of Top-N Recommenders that Use Images to Address Cold Start},
       Year = {2020},
