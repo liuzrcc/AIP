@@ -1,6 +1,6 @@
 ## AIP: Adversarial Item Promotion
 
-This repository releases the PyTorch implementation of "AIP attacks" in our paper ["Adversarial Item Promotion: Vulnerabilities at the Core of Top-N Recommenders that Use Images to Address Cold Start"](https://arxiv.org/abs/1901.10332).
+This repository releases the PyTorch implementation of "AIP attacks" in our paper ["Adversarial Item Promotion: Vulnerabilities at the Core of Top-N Recommenders that Use Images to Address Cold Start"](http://arxiv.org/abs/2006.01888).
 
 Figure below illustrates the mechanics of AIP attack. 
 
@@ -39,7 +39,7 @@ python BPRtrain.py -data_set=amazon -gpu_id=0 -factor_num=64 -epoch=2000 -batch_
 python DVBPRtrain.py -data_set=amazon -gpu_id=0 -factor_num=100 -epoch=20 -batch_size=128 -lambda1=1e-3 -lambda1=1 -learning_rate=1e-4 num_workers=6
 python VBPRtrain.py -data_set=amazon -gpu_id=0 -factor_num=100 -epoch=2000 -batch_size=512 -lambda1=1e-4 -learning_rate=1e-4 num_workers=4
 ```
-Pre-trained models are available at this [link](??).
+Pre-trained models are available at this [link](https://surfdrive.surf.nl/files/index.php/s/QHyF0FzRBJxkhkT).
 
 
 #### 3. Generate first stage candidate set and calculate visual ranker score for candidate set
@@ -49,7 +49,7 @@ python gen_candidate_set.py -task=BPR-DVBPR -data_set=amazon -gpu_id=0 -model_pa
 python gen_candidate_set.py -task=VBPR -data_set=amazon -gpu_id=0 -model_path=./models/ -score_path=./bpr_score_index/
 python gen_candidate_set.py -task=AlexRank -data_set=amazon -gpu_id=0 -model_path=./models/ -score_path=./bpr_score_index/
 ```
-Pre-calculated models are available at this [link](??).
+Pre-calculated index and score are available at this [link](https://surfdrive.surf.nl/files/index.php/s/z2zZ4ObBCxF3BQO).
 
 
 #### 4. Mount AIP attacks
@@ -77,11 +77,11 @@ A t-SNE 2-D visualization of cooperative item and adversarial items are shown be
 
 Please cite the following paper if you use AIP in your research.
 
-      @inproceedings{liu2020adversarial,
+      @misc{liu2020adversarial,
       Author = {Zhuoran Liu and Martha Larson},
       Title = {Adversarial Item Promotion: Vulnerabilities at the Core of Top-N Recommenders that Use Images to Address Cold Start},
       Year = {2020},
-      booktitle={},
+      Eprint={arXiv:2006.01888},
       }
       
 The copyright of all the images belongs to the image owners.
