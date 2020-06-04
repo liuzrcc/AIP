@@ -61,7 +61,7 @@ python mount_AIP.py -data_set=amazon -gpu_id=0 -model_to_attack=DVBPR -attack_ty
 ```
 Adversarial item images are save in `./adv_output/`.
 
-#### 5. Evaluate of AIP attacks
+#### 5. Evaluation of AIP attacks
 
 ```
 python eval.py -model_to_eval=DVBPR -data_set=amazon -gpu_id=0 -adv_item_path=amazon_INSA
