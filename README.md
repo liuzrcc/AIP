@@ -28,7 +28,7 @@ git clone https://github.com/liuzrcc/AIP.git
 cd AIP/data
 bash download_data.sh
 ```
-Please also download visual features and list of cold item items at this [link](??).
+Please also download visual features and list of cold item items at this [link](https://surfdrive.surf.nl/files/index.php/s/bLGuUyy7Aw8clMu).
 
 #### 2. Train first recommender BPR and second stage visual ranler DVBPR and VBPR
 
