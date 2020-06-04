@@ -59,14 +59,14 @@ Choose model (DVBPR, VBPR, AlexRank) to attack, and also choose attack methods (
 ```
 python mount_AIP.py -data_set=amazon -gpu_id=0 -model_to_attack=DVBPR -attack_type=INSA
 ```
-Adversarial item images are save in `./adv_output/` by default.
+Adversarial item images are save in `./adv_output/`.
 
 #### 5. Evaluate of AIP attacks
 
 ```
 python eval.py -model_to_eval=DVBPR -data_set=amazon -gpu_id=0 -adv_item_path=amazon_INSA
 ```
-Evaluation results are saved in `./results/` by default.
+Evaluation results are saved in `./results/`.
 
 ### Visualization of attacks:
 
