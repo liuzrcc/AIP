@@ -30,7 +30,7 @@ parser.add_argument("-gpu_id", "--gpu", type=int, help="Using GPU or not, cpu pl
 parser.add_argument("-factor_num", "--K", type=int, help="Length of latent factors.", default="100")
 parser.add_argument("-epoch", "--training_epoch", type=int, help="Training epoches.", default="20")
 parser.add_argument("-batch_size", "--batch_size", type=int, help="Training batch size.", default="128")
-parser.add_argument("-lambda1", "--lambda1", type=int, help="Weight of regulizer for user embeddings.", default="1e-3")
+parser.add_argument("-lambda1", "--lambda1", type=float, help="Weight of regulizer for user embeddings.", default="1e-3")
 parser.add_argument("-lambda2", "--lambda2", type=int, help="Weight of regulizer for network.", default="1")
 parser.add_argument("-learning_rate", "--lr", type=float, help="Weight of regulizer for network.", default="1e-4")
 parser.add_argument("-num_workers", "--numofworkers", type=int, help="Number of co-workers for dataloader.", default="4")
@@ -52,7 +52,7 @@ if args.gpu == 0:
     device = 'cuda:0'
 elif args.gpu == -1:
     device = 'cpu'
-    
+
 data_train = args.data_train
 K = args.K # Latent dimensionality
 lambda1 = args.lambda1 # Weight decay
@@ -75,7 +75,7 @@ if data_train == 'amazon':
     cold_list = np.load('../data/amazon_one_k_cold.npy')
 
 elif data_train == 'tradesy':
-    
+
     dataset_name = 'TradesyImgPartitioned.npy'
     dataset = np.load('../data/' + dataset_name, encoding='bytes')
     [user_train, user_validation, user_test, Item, usernum, itemnum] = dataset
@@ -106,7 +106,7 @@ class trainset(Dataset):
 
     def __len__(self):
         return len(self.images_i)
-    
+
 
 class testset(Dataset):
     def __init__(self, loader=default_loader):
@@ -125,15 +125,15 @@ class testset(Dataset):
 def AUC(train,test,U,I):
     ans=0
     cc=0
-    for u in tqdm_notebook(train):    
+    for u in tqdm_notebook(train):
         i=test[u][0][b'productid']
         T=np.dot(U[u,:],I.T)
         cc+=1
-        M=set()      
+        M=set()
         for item in train[u]:
             M.add(item[b'productid'])
         M.add(i)
-            
+
         count=0
         tmpans=0
         for j in range(itemnum):
@@ -148,7 +148,7 @@ def AUC(train,test,U,I):
 
 oneiteration = 0
 for item in user_train: oneiteration+=len(user_train[item])
-    
+
 
 
 def sample(user):
@@ -173,7 +173,7 @@ def init_weights(m):
     if type(m) == nn.Conv2d or type(m) == nn.Linear:
         torch.nn.init.xavier_uniform_(m.weight)
         m.bias.data.fill_(0)
-        
+
 model = recsys_models.pthDVBPR(K).to(device)
 model.apply(init_weights)
 
@@ -183,12 +183,12 @@ thetau = recsys_models.User_Em(usernum, K).to(device)
 file_item_i = [Item[i][b'imgs'] for i in range(itemnum)]
 
 def Evaluate(thetau, model):
-    
+
     for item in thetau.parameters():
         U_np = item.cpu().data.numpy()
-        
+
     model_t = model.eval()
-    
+
 #     file_item_i = [Item[i][b'imgs'] for i in range(itemnum)]
     item_data  = testset()
 #     change to tensor does not help to accelerate!!!!
@@ -198,13 +198,13 @@ def Evaluate(thetau, model):
             I = model(data.to(device)).cpu().data.numpy()
         else:
             I = np.append(I, model(data.to(device)).cpu().data.numpy(), axis = 0)
-            
+
     return AUC(user_train, user_validation, U_np, I)
 
 
 oneiteration = 0
 for item in user_train: oneiteration+=len(user_train[item])
-    
+
 writer = SummaryWriter()
 writer_ct = 0
 
@@ -215,24 +215,24 @@ optimizer = torch.optim.Adam(params, lr=learning_rate)
 # scheduler = MultiStepLR(optimizer, milestones=[55,58], gamma=0.1)
 
 for epoch in tqdm(range(training_epoch)):
-    
+
     batch_count = 0
 #      bootstrap
     train_ls = [list(sample(user_train)) for _ in range(oneiteration)]
-    
+
     file_train_i = [Item[i][b'imgs'] for _,i,j in train_ls]
     file_train_j = [Item[j][b'imgs'] for _,i,j in train_ls]
-    
+
     train_data  = trainset()
-    
-    for data in DataLoader(train_data, batch_size = batch_size, 
+
+    for data in DataLoader(train_data, batch_size = batch_size,
                            shuffle = False, pin_memory = True, num_workers = numofworkers):
-        
+
         nn_l2_reg = torch.tensor(0.).to(device)
         for name, param in model.named_parameters():
             if name.split('.')[-1] == 'weight':
                 nn_l2_reg += torch.sum((param) **2 ) / 2
-                
+
         batch_image1, batch_image2, u, _, _ = data
 
         result1 = model(batch_image1.to(device))
@@ -247,10 +247,10 @@ for epoch in tqdm(range(training_epoch)):
         optimizer.zero_grad()
         loss.backward(retain_graph=True)
         optimizer.step()
-        
+
 #         for param in thetau.parameters():
 #             print('User embed norm is', torch.sum((param) **2 ) / 2)
-        
+
         batch_count += batch_size
 
         if (batch_count % (batch_size * 10)) == 0:
@@ -259,10 +259,10 @@ for epoch in tqdm(range(training_epoch)):
             n_iter = writer_ct
             writer.add_scalar('Loss/cost_train', cost_train, n_iter)
             writer.add_scalar('Loss/l2_reg', l2_reg, n_iter)
-            
+
     auc_val = Evaluate(thetau, model)
     writer.add_scalar('Loss/val_AUC', auc_val, epoch)
-        
+
 #         scheduler.step()
     for item in thetau.parameters():
         U_np = item.cpu().data.numpy()

@@ -28,7 +28,7 @@ parser.add_argument("-epoch", "--training_epoch", type=int, help="Training epoch
 parser.add_argument("-batch_size", "--batch_size", type=int, help="Training batch size.", default="4096")
 parser.add_argument("-lambda1", "--lambda1", type=float, help="Weight of regulizer for user embeddings.", default="0.001")
 parser.add_argument("-learning_rate", "--lr", type=float, help="Training learning rate.", default="0.01")
-parser.add_argument("-num_workers", "--numofworkers", type=int, help="Number of co-workers for dataloader.", default="6")
+parser.add_argument("-num_workers", "--numofworkers", type=int, help="Number of co-workers for dataloader.", default="8")
 args = parser.parse_args()
 
 
@@ -36,7 +36,7 @@ if args.gpu == 0:
     device = 'cuda:0'
 elif args.gpu == -1:
     device = 'cpu'
-    
+
 data_train = args.data_train
 training_epoch = args.training_epoch
 lambda1 = args.lambda1 # Weight decay
@@ -58,7 +58,7 @@ if data_train == 'amazon':
     cold_list = np.load('../data/amazon_one_k_cold.npy')
 
 elif data_train == 'tradesy':
-    
+
     dataset_name = 'TradesyImgPartitioned.npy'
     dataset = np.load('../data/' + dataset_name, encoding='bytes')
     [user_train, user_validation, user_test, Item, usernum, itemnum] = dataset
@@ -103,7 +103,7 @@ class testset(Dataset):
 
     def __len__(self):
         return len(self.target)
-    
+
 class valset(Dataset):
     def __init__(self):
         self.target = val_ls
@@ -117,7 +117,7 @@ class valset(Dataset):
 
 oneiteration = 0
 for item in user_train: oneiteration+=len(user_train[item])
-    
+
 
 def sample(user):
     u = random.randrange(usernum)
@@ -148,7 +148,7 @@ val_ls = [list(sample_val(u_idx) for i in range(100)) for u_idx in tqdm(range(us
 val_ls = np.array(val_ls).reshape(-1, 3)
 
 val_data  = valset()
-val_loader = DataLoader(val_data, batch_size = 100, 
+val_loader = DataLoader(val_data, batch_size = 100,
                        shuffle = False, num_workers = 4)
 
 
@@ -172,15 +172,16 @@ writer_ct = 0
 # model training
 count, best_hr = 0, 0
 for epoch in tqdm(range(training_epoch)):
-    model.train() 
+    model.train()
     start_time = time.time()
     train_ls = [list(sample(user_train)) for _ in range(oneiteration)]
 
     train_data  = trainset()
+    print(len(train_data))
 
-    for data in DataLoader(train_data, batch_size = batch_size, 
+    for data in DataLoader(train_data, batch_size = batch_size,
                        shuffle = True, pin_memory = True, num_workers = numofworkers):
-        
+
         user, item_i, item_j = data
 
         model.zero_grad()
@@ -191,11 +192,11 @@ for epoch in tqdm(range(training_epoch)):
         writer.add_scalar('runs/loss', loss.item(), count)
         count += 1
     model.eval()
-    
+
     HR = metrics_hr(model, val_loader, 5)
     writer.add_scalar('runs/HR_at5', HR, count)
     elapsed_time = time.time() - start_time
-    print("The time elapse of epoch {:03d}".format(epoch) + " is: " + 
+    print("The time elapse of epoch {:03d}".format(epoch) + " is: " +
             time.strftime("%H: %M: %S", time.gmtime(elapsed_time)))
     print("HR: {:.3f}".format(np.mean(HR)))
 

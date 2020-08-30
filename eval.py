@@ -35,9 +35,9 @@ if args.gpu == 0:
     device = 'cuda:0'
 elif args.gpu == -1:
     device = 'cpu'
-    
 
-    
+
+
 
 data_for_experiment = args.data_for_experiment
 
@@ -64,52 +64,52 @@ if args.model_to_eval == 'DVBPR':
         transforms.ToTensor(),])
 
     dvbpr_U = checkpoint['U']
-    perturb_items = np.zeros((100, 100))
-    bpr_scores = np.load(args.score_path + '/DVBPR_' + data_for_experiment + '_k100.npz')['temp_res']
+    perturb_items = np.zeros((1000, 100))
+    bpr_scores = np.load(args.score_path + 'DVBPR_' + data_for_experiment + '_k100.npy')
 
 
     eval_root = './adv_output/DVBPR/' + args.adv_item_path + '/'
     for idx, img in tqdm(enumerate(os.listdir(eval_root))):
         if img.split('.')[-1] == 'png':
             perturb_items[idx] = model(DVBPR_test_transform(Image.open(eval_root + str(img)).convert('RGB')).to(device).unsqueeze(0)).cpu().data.numpy()[0]
-            DVBPR_UI_adv_tar = np.dot(dvbpr_U, perturb_items.T)
-            HR_org_top5_count = []
-            HR_org_top10_count = []
-            HR_org_top20_count = []
+    DVBPR_UI_adv_tar = np.dot(dvbpr_U, perturb_items.T)
+    HR_org_top5_count = []
+    HR_org_top10_count = []
+    HR_org_top20_count = []
 
-            HR_adv_top5_count = [] 
-            HR_adv_top10_count = []
-            HR_adv_top20_count = []
+    HR_adv_top5_count = []
+    HR_adv_top10_count = []
+    HR_adv_top20_count = []
 
-            for i in tqdm(range(len(os.listdir(eval_root)))):
-                to_test = np.append(bpr_scores, DVBPR_UI_adv_tar[:, i].reshape(-1, 1), axis = 1)
-                rank_res = np.argsort(-1 * to_test)
+    for i in tqdm(range(len(os.listdir(eval_root)))):
+        to_test = np.append(bpr_scores, DVBPR_UI_adv_tar[:, i].reshape(-1, 1), axis = 1)
+        rank_res = np.argsort(-1 * to_test)
 
-                HR_org_top5_count.extend([np.array([1000 in rlist for rlist in rank_res[:, :5]])])
-                HR_org_top10_count.extend([np.array([1000 in rlist for rlist in rank_res[:, :10]])])
-                HR_org_top20_count.extend([np.array([1000 in rlist for rlist in rank_res[:, :20]])])
+        HR_org_top5_count.extend([np.array([1000 in rlist for rlist in rank_res[:, :5]])])
+        HR_org_top10_count.extend([np.array([1000 in rlist for rlist in rank_res[:, :10]])])
+        HR_org_top20_count.extend([np.array([1000 in rlist for rlist in rank_res[:, :20]])])
 
-                HR_adv_top5_count.extend([np.array([1001 in rlist for rlist in rank_res[:, :5]])])
-                HR_adv_top10_count.extend([np.array([1001 in rlist for rlist in rank_res[:, :10]])])
-                HR_adv_top20_count.extend([np.array([1001 in rlist for rlist in rank_res[:, :20]])])
+        HR_adv_top5_count.extend([np.array([1001 in rlist for rlist in rank_res[:, :5]])])
+        HR_adv_top10_count.extend([np.array([1001 in rlist for rlist in rank_res[:, :10]])])
+        HR_adv_top20_count.extend([np.array([1001 in rlist for rlist in rank_res[:, :20]])])
 
-            print('------------------------------')
-            print(np.array(HR_org_top5_count).mean())
-            print(np.array(HR_org_top10_count).mean())
-            print(np.array(HR_org_top20_count).mean())
-            print(np.array(HR_adv_top5_count).mean())
-            print(np.array(HR_adv_top10_count).mean())
-            print(np.array(HR_adv_top20_count).mean())
-            print('------------------------------')
-            np.save('./results/' + 'DVBPR_' + args.adv_item_path + '.npy', np.array([[np.array(HR_org_top5_count).mean()],
-            [np.array(HR_org_top10_count).mean()],
-            [np.array(HR_org_top20_count).mean()],
-            [np.array(HR_adv_top5_count).mean()],
-            [np.array(HR_adv_top10_count).mean()],
-            [np.array(HR_adv_top20_count).mean()]]))
+    print('------------------------------')
+    print(np.array(HR_org_top5_count).mean())
+    print(np.array(HR_org_top10_count).mean())
+    print(np.array(HR_org_top20_count).mean())
+    print(np.array(HR_adv_top5_count).mean())
+    print(np.array(HR_adv_top10_count).mean())
+    print(np.array(HR_adv_top20_count).mean())
+    print('------------------------------')
+    np.save('./results/' + 'DVBPR_' + args.adv_item_path + '.npy', np.array([[np.array(HR_org_top5_count).mean()],
+    [np.array(HR_org_top10_count).mean()],
+    [np.array(HR_org_top20_count).mean()],
+    [np.array(HR_adv_top5_count).mean()],
+    [np.array(HR_adv_top10_count).mean()],
+    [np.array(HR_adv_top20_count).mean()]]))
 
 if args.model_to_eval == 'VBPR':
-    
+
     data_root = './data/'
     if data_for_experiment == 'amazon':
         dataset_name = 'AmazonMenWithImgPartitioned.npy'
@@ -251,9 +251,9 @@ if args.model_to_eval == 'VBPR':
         [np.array(HR_adv_top5_count).mean()],
         [np.array(HR_adv_top10_count).mean()],
         [np.array(HR_adv_top20_count).mean()]]))
-    
+
 if args.model_to_eval == 'AlexRank':
-    
+
     if data_for_experiment == 'amazon':
         dataset_name = 'AmazonMenWithImgPartitioned.npy'
 
@@ -283,27 +283,27 @@ if args.model_to_eval == 'AlexRank':
         param.requires_grad = False
 
     item_dict = {}
-    for u in tqdm_notebook(range(usernum)):
+    for u in tqdm(range(usernum)):
         for j in user_train[u]:
             item_id = j[b'productid']
             if u not in item_dict:
                 item_dict[u] = [item_id]
             else:
-                item_dict[u].append(item_id) 
+                item_dict[u].append(item_id)
 
-    bpr_scores = np.load(args.score_path+ data_for_experiment + '_visrank_bpr_scores_alex.npy')
+    bpr_scores = np.load(args.score_path+ 'alexrank_' + data_for_experiment + '_k100.npy')
 
 
-    eval_root = './adv_output/VISRANK/' + args.adv_item_path + '/'
+    eval_root = './adv_output/AlexRank/' + args.adv_item_path + '/'
 
     test_feature = np.empty((0, 4096))
-    for img in tqdm_notebook(os.listdir(eval_root)):
+    for img in tqdm(os.listdir(eval_root)):
         if img.split('.')[-1] == 'png':
             test_feature = np.append(test_feature, model(alexrank_test_transform(Image.open(eval_root + img).convert('RGB')).unsqueeze(0).to(device))[0].cpu().detach().numpy().reshape(1, -1), axis = 0)
 
 
     test_score = np.zeros((usernum, len(test_feature)))
-    for i in tqdm_notebook(range(usernum)):
+    for i in tqdm(range(usernum)):
         temp_dist = np.empty((0, len(test_feature)))
         for idx in item_dict[i]:
             temp_dist = np.append(temp_dist, np.linalg.norm(test_feature - alex_4096_cnn_f[idx], axis = 1).reshape(-1, len(test_feature)), axis = 0)
@@ -318,7 +318,7 @@ if args.model_to_eval == 'AlexRank':
     HR_adv_top10_count = []
     HR_adv_top20_count = []
 
-    for i in tqdm_notebook(range(max_item_num)):
+    for i in tqdm(range(80)):
 
         to_test = np.append(bpr_scores, test_score[:, i].reshape(-1, 1), axis = 1)
         rank_res = np.argsort(to_test)

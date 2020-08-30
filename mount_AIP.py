@@ -19,7 +19,7 @@ import torchvision.transforms as transforms
 import torch.nn.functional as F
 
 from model import pthDVBPR, pthVBPR, Normalize
-from AIP import INSA_DVBPR, EXPA_DVBPR, INSA_VBPR, Alex_EXPA, INSA_AlexRank
+from AIP import INSA_DVBPR, EXPA_DVBPR, INSA_VBPR, Alex_EXPA, INSA_AlexRank, EXPA_DVBPR_new
 
 
 
@@ -37,7 +37,7 @@ if args.gpu == 0:
     device = 'cuda:0'
 elif args.gpu == -1:
     device = 'cpu'
-    
+
 attack_type = args.attack_type
 model_to_attack = args.model_to_attack
 epsilon = args.epsilon
@@ -58,7 +58,7 @@ elif data_for_experiment == 'tradesy':
 
     dataset = np.load(data_root + dataset_name, encoding='bytes')
     [user_train, user_validation, user_test, Item, usernum, itemnum] = dataset
-    
+
     alex_4096_cnn_f = np.load(data_root + 'tradesy_alexnet_features.npy')
     cold_k = np.load(data_root + 'tradesy_one_k_cold.npy')
 
@@ -75,20 +75,20 @@ if model_to_attack == 'DVBPR':
     model.load_state_dict(checkpoint['model_state_dict'])
     dvbpr_U = checkpoint['U']
     model.to(device).eval()
-    
+
     norm = Normalize(mean=[0.6949, 0.6748, 0.6676], std=[0.3102, 0.3220, 0.3252])
     norm.to(device)
 
 elif model_to_attack == 'VBPR':
     model_name = data_for_experiment + '_k100_' + model_to_attack + '.pt'
-    
-        
+
+
     model = pthVBPR(usernum, itemnum, 100, 4096).to(device)
     model = torch.load('./models/' + model_name, map_location=device)
     model.eval().to(device)
     norm = Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     norm.to(device)
-    
+
     feature_model = models.alexnet(pretrained=True)
     new_classifier = nn.Sequential(*list(feature_model.classifier.children())[:-1])
     feature_model.classifier = new_classifier
@@ -101,7 +101,7 @@ elif model_to_attack == 'AlexRank':
     new_classifier = nn.Sequential(*list(feature_model.classifier.children())[:-1])
     feature_model.classifier = new_classifier
     feature_model.eval().to(device)
-        
+
 print('######## Models loaded ########')
 
 
@@ -118,8 +118,8 @@ if model_to_attack == 'DVBPR':
     elif attack_type == 'EXPA':
         for item in tqdm(cold_k):
             EXPA_DVBPR(item, 901, save_root, epsilon, Item, device, model, norm)
-            
-            
+
+
 if model_to_attack == 'VBPR':
     if attack_type == 'INSA':
         for cold_i in tqdm(cold_k):
@@ -127,9 +127,9 @@ if model_to_attack == 'VBPR':
     elif attack_type == 'EXPA':
         for cold_i in tqdm(cold_k):
             Alex_EXPA(save_root, cold_i, 901, usernum, epsilon, Item, device, feature_model, norm)
-            
-            
-            
+
+
+
 if model_to_attack == 'AlexRank':
     if attack_type == 'INSA':
         for cold_i in tqdm(cold_k):
@@ -137,7 +137,7 @@ if model_to_attack == 'AlexRank':
     elif attack_type == 'EXPA':
         for cold_i in tqdm(cold_k):
             Alex_EXPA(save_root, cold_i, 901, usernum, epsilon, Item, device, feature_model, norm)
-            
-            
-            
+
+
+
 print('######## Attack finished! ########')
