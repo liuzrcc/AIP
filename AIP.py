@@ -76,8 +76,8 @@ def INSA_DVBPR(save_root, org_img_num, User_content_embedding, epsilon, Item, de
     X_new = image_o + delta.data
     x_np = transforms.ToPILImage()((torch.round(X_new[0]*255)/255).detach().cpu())
     x_np.save(save_root + str(org_img_num) +'.png')
-    
-    
+
+
 def EXPA_DVBPR(org_img_path, target_number, adv_images_root, epsilon, Item, device, model, norm):
     image_t = tensor_transform(Image.open(BytesIO(Item[org_img_path][b'imgs']))).to(device)
 
@@ -86,14 +86,14 @@ def EXPA_DVBPR(org_img_path, target_number, adv_images_root, epsilon, Item, devi
 
     loss_fn = torch.nn.MSELoss(reduction='sum')
 
-    learning_rate = 1e-2
+    learning_rate = 1e-3
     optimizer = torch.optim.Adam([v], lr=learning_rate)
 
-    for t in tqdm(range(5000)):    
+    for t in tqdm(range(5000)):
 
         y_pred = model(norm(image_t + v))
         loss = loss_fn(y_pred, target_feature)
-#         print(loss.item())
+        # print(loss.item())
 
         optimizer.zero_grad()
 
@@ -105,14 +105,42 @@ def EXPA_DVBPR(org_img_path, target_number, adv_images_root, epsilon, Item, devi
     X_new = image_t + v.data
     x_np = transforms.ToPILImage()((torch.round(X_new*255)/255).detach().cpu())
     x_np.save(adv_images_root + str(org_img_path) +'.png')
-    
+
+def EXPA_DVBPR_new(org_img_path, target_number, adv_images_root, epsilon, Item, device, model, norm, alpha=1/255):
+    image_t = tensor_transform(Image.open(BytesIO(Item[org_img_path][b'imgs']))).to(device)
+
+    target_feature = model(orginal_transform(Image.open(BytesIO(Item[target_number][b'imgs']))).unsqueeze(0).to(device))
+    v = torch.zeros_like(image_t, requires_grad=True, device = device)
+
+    loss_fn = torch.nn.MSELoss(reduction='mean')
+
+    # learning_rate = 1e-2
+    # optimizer = torch.optim.Adam([v], lr=learning_rate)
+
+    for t in tqdm(range(1000)):
+
+        y_pred = model(norm(image_t + v))
+        loss = loss_fn(y_pred, target_feature)
+        # print(loss.item())
+
+        # optimizer.zero_grad()
+
+        loss.backward(retain_graph=True)
+        # optimizer.step()
+        adv_images = image_t - alpha*torch.sign(v.grad)
+        v.data = torch.clamp(adv_images - image_t, -epsilon/255, epsilon/255)
+        # v.data = torch.clamp(v.data, -epsilon/255, epsilon/255)
+        v.data = (torch.clamp(image_t + v.data, 0 + 1e-6, 1 - 1e-6) - image_t)
+    X_new = image_t + v.data
+    x_np = transforms.ToPILImage()((torch.round(X_new*255)/255).detach().cpu())
+    x_np.save(adv_images_root + str(org_img_path) +'.png')
 
 def INSA_VBPR(save_root, org_img_num, usernum, epsilon, Item, device, VBPRmodel, feature_model, norm):
     delta = torch.rand([1, 3, 224, 224], requires_grad=True, device=device)
     optimizer = torch.optim.Adam([delta], lr=1e-4)
     train_ls = [list((u_idx, org_img_num)) for u_idx in range(usernum)]
     train_data  = trainset(train_ls)
-    
+
     for epoch in range(5):
         for data in DataLoader(train_data, batch_size = 256, shuffle = False, num_workers = 4):
             ui, xj = data
@@ -129,7 +157,7 @@ def INSA_VBPR(save_root, org_img_num, usernum, epsilon, Item, device, VBPRmodel,
     X_new = image_o + delta.data
     x_np = transforms.ToPILImage()((torch.round(X_new[0]*255)/255).detach().cpu())
     x_np.save(save_root + str(org_img_num) +'.png')
-    
+
 
 def Alex_EXPA(save_root, org_img_num, target_item, usernum, epsilon, Item, device, feature_model, norm):
     delta = torch.rand([1, 3, 224, 224], requires_grad=True, device=device)
@@ -150,9 +178,9 @@ def Alex_EXPA(save_root, org_img_num, target_item, usernum, epsilon, Item, devic
     X_new = image_o + delta.data
     x_np = transforms.ToPILImage()((torch.round(X_new[0]*255)/255).detach().cpu())
     x_np.save(save_root + str(org_img_num) +'.png')
-    
+
 def INSA_AlexRank(save_root, org_img_num, alexnet_feature, usernum, epsilon, Item, device, model, norm, user_train):
-    
+
     item_dict = {}
     for u in tqdm(range(usernum)):
         for j in user_train[u]:
@@ -160,8 +188,8 @@ def INSA_AlexRank(save_root, org_img_num, alexnet_feature, usernum, epsilon, Ite
             if u not in item_dict:
                 item_dict[u] = [item_id]
             else:
-                item_dict[u].append(item_id) 
-                
+                item_dict[u].append(item_id)
+
     delta = torch.rand([1, 3, 224, 224], requires_grad=True, device=device)
     image_o = orginal_transform_alex(Image.open(BytesIO(Item[org_img_num][b'imgs']))).unsqueeze(0).to(device)
     optimizer = torch.optim.Adam([delta], lr=1e-3)
@@ -179,4 +207,4 @@ def INSA_AlexRank(save_root, org_img_num, alexnet_feature, usernum, epsilon, Ite
 
     X_new = image_o + delta.data
     x_np = transforms.ToPILImage()((torch.round(X_new[0]*255)/255).detach().cpu())
-    x_np.save(save_root + str(org_img_num) +'.png')    
+    x_np.save(save_root + str(org_img_num) +'.png')

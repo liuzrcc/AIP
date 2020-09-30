@@ -94,6 +94,21 @@ elif model_to_attack == 'VBPR':
     feature_model.classifier = new_classifier
     feature_model.eval().to(device)
 
+elif model_to_attack == 'AMR':
+    model_name = data_for_experiment + '_k100_' + model_to_attack + '.pt'
+
+
+    model = pthVBPR(usernum, itemnum, 100, 4096).to(device)
+    model = torch.load('./models/' + model_name, map_location=device)
+    model.eval().to(device)
+    norm = Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    norm.to(device)
+
+    feature_model = models.alexnet(pretrained=True)
+    new_classifier = nn.Sequential(*list(feature_model.classifier.children())[:-1])
+    feature_model.classifier = new_classifier
+    feature_model.eval().to(device)
+
 elif model_to_attack == 'AlexRank':
     norm = Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     norm.to(device)
@@ -126,8 +141,18 @@ if model_to_attack == 'VBPR':
             INSA_VBPR(save_root, cold_i, usernum, epsilon, Item, device, model, feature_model, norm)
     elif attack_type == 'EXPA':
         for cold_i in tqdm(cold_k):
-            Alex_EXPA(save_root, cold_i, 901, usernum, epsilon, Item, device, feature_model, norm)
+            if data_for_experiment == 'amazon':
+                Alex_EXPA(save_root, cold_i, 901, usernum, epsilon, Item, device, feature_model, norm)
+                
 
+if model_to_attack == 'AMR':
+    if attack_type == 'INSA':
+        for cold_i in tqdm(cold_k):
+            INSA_VBPR(save_root, cold_i, usernum, epsilon, Item, device, model, feature_model, norm)
+    elif attack_type == 'EXPA':
+        for cold_i in tqdm(cold_k):
+            if data_for_experiment == 'amazon':
+                Alex_EXPA(save_root, cold_i, 901, usernum, epsilon, Item, device, feature_model, norm)
 
 
 if model_to_attack == 'AlexRank':

@@ -190,7 +190,25 @@ if args.task == 'VBPR':
 
     np.save(args.score_path + 'VBPR_' + data_train + '_k100.npy', VBPR_UI_m_BPR)
 
+####################################################################################
+if args.task == 'AMR':
+    # calculation of VBPR scores
+    bpr_index = np.load(args.score_path + 'bpr_' + data_train + '_index.npy')
+    model = AMR(usernum, itemnum, 100, 4096).to(device)
+    model = torch.load(args.model_path + data_train + '_k100_AMR.pt')
+    model.eval().to(device)
 
+    VBPR_UI_m_BPR = np.zeros((usernum, 1001))
+    for i in tqdm(range(usernum)):
+        x1 = torch.LongTensor(np.repeat(i, 1001).astype(np.int32))
+        x2 = torch.LongTensor(np.array(bpr_index[i]).astype(np.int32))
+        x3 = torch.tensor(alex_4096_cnn_f[np.array(bpr_index[i]).astype(np.int32)]).float()
+        res = model(x1.to(device), x2.to(device), x3.to(device))
+        VBPR_UI_m_BPR[i] = res.detach().cpu().numpy()[0]
+
+
+
+    np.save(args.score_path + 'AMR_' + data_train + '_k100.npy', VBPR_UI_m_BPR)
 
 ####################################################################################
 if args.task == 'AlexRank':
