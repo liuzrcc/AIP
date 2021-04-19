@@ -15,7 +15,7 @@ Figure below illustrates the mechanics of AIP attack.
 We carry out experiments on Ubuntu 18.04 environemnt with 32 cpu cores and 32G memory. A GPU is essential for efficiency.
 
 ```
-Python3
+Python 3
 PyTorch 1.4.0
 ```
 
@@ -39,7 +39,6 @@ python BPRtrain.py -data_set=amazon -gpu_id=0 -factor_num=64 -epoch=2000 -batch_
 python DVBPRtrain.py -data_set=amazon -gpu_id=0 -factor_num=100 -epoch=20 -batch_size=128 -lambda1=1e-3 -lambda1=1 -learning_rate=1e-4 num_workers=6
 python VBPRtrain.py -data_set=amazon -gpu_id=0 -factor_num=100 -epoch=2000 -batch_size=512 -lambda1=1e-4 -learning_rate=1e-4 num_workers=4
 python AMR.py -data_set=amazon -gpu_id=0 -factor_num=100 -epoch=2000 -batch_size=512 -lambda1=1e-4 -learning_rate=1e-4 num_workers=4
-
 ```
 Pre-trained models are available at this [link](https://surfdrive.surf.nl/files/index.php/s/QHyF0FzRBJxkhkT).
 
@@ -51,7 +50,6 @@ python gen_candidate_set.py -task=BPR-DVBPR -data_set=amazon -gpu_id=0 -model_pa
 python gen_candidate_set.py -task=VBPR -data_set=amazon -gpu_id=0 -model_path=./models/ -score_path=./bpr_score_index/
 python gen_candidate_set.py -task=AlexRank -data_set=amazon -gpu_id=0 -model_path=./models/ -score_path=./bpr_score_index/
 python gen_candidate_set.py -task=AMR -data_set=amazon -gpu_id=0 -model_path=./models/ -score_path=./bpr_score_index/
-
 ```
 Pre-calculated index and score are available at this [link](https://surfdrive.surf.nl/files/index.php/s/z2zZ4ObBCxF3BQO).
 
@@ -88,11 +86,12 @@ A t-SNE 2-D visualization of cooperative item and adversarial items are shown be
 
 Please cite the following paper if you use AIP in your research.
 
-      @misc{liu2020adversarial,
+      @inproceedings{liu2020adversarial,
       Author = {Zhuoran Liu and Martha Larson},
       Title = {Adversarial Item Promotion: Vulnerabilities at the Core of Top-N Recommenders that Use Images to Address Cold Start},
-      Year = {2020},
-      Eprint={arXiv:2006.01888},
+      Year = {2021},
+      booktitle = {Proceedings of The Web Conference (WWW)},
+      publisher = {ACM}      
       }
       
 The copyright of all the images belongs to the image owners.
