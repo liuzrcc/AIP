@@ -215,7 +215,7 @@ for epoch in tqdm(range(training_epoch)):
         writer.add_scalar('vbprruns/loss', loss.item(), count)
         count += 1
     VBPRmodel.eval()
-    HR = metrics_zrl(VBPRmodel, val_loader, 5)
+    HR = metrics_VBPR(VBPRmodel, val_loader, 5)
     writer.add_scalar('vbprruns/hr5', HR, count)
     elapsed_time = time.time() - start_time
     
